@@ -92,11 +92,17 @@ def show_model_info():
         
         if hasattr(model, 'feature_importances_'):
             print("\nTop 5 Most Important Features:")
-            feature_names = [
-                'Year', 'Kilometers_Driven', 'Fuel_Type',
-                'Transmission', 'Owner_Type', 'Mileage',
-                'Engine', 'Power', 'Seats'
-            ]
+            # Try to get feature names from the model, fallback to hardcoded list
+            if hasattr(model, 'feature_names_in_'):
+                feature_names = list(model.feature_names_in_)
+            else:
+                # Note: These are the expected feature names after preprocessing
+                feature_names = [
+                    'Year', 'Kilometers_Driven', 'Fuel_Type',
+                    'Transmission', 'Owner_Type', 'Mileage',
+                    'Engine', 'Power', 'Seats'
+                ]
+            
             importances = model.feature_importances_
             indices = np.argsort(importances)[::-1][:5]
             

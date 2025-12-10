@@ -79,10 +79,11 @@ class CarPricePredictor:
         # Fill missing numeric values with median
         for label, content in self.df.items():
             if pd.api.types.is_numeric_dtype(content):
-                if pd.isnull(content).sum():
+                missing_count = pd.isnull(content).sum()
+                if missing_count > 0:
                     median_value = content.median()
                     self.df[label] = content.fillna(median_value)
-                    logger.info(f"Filled {pd.isnull(content).sum()} missing values in '{label}' with median: {median_value}")
+                    logger.info(f"Filled {missing_count} missing values in '{label}' with median: {median_value}")
         
         # Convert string columns to categorical
         for label, content in self.df.items():
@@ -100,12 +101,13 @@ class CarPricePredictor:
         
         return self.df
     
-    def visualize_data(self, save_plots: bool = True):
+    def visualize_data(self, save_plots: bool = True, pairplot_sample_size: int = 1000):
         """
         Create visualizations of the data.
         
         Args:
             save_plots: Whether to save plots to files
+            pairplot_sample_size: Number of samples to use for pairplot (for performance)
         """
         logger.info("Creating data visualizations")
         
@@ -120,9 +122,9 @@ class CarPricePredictor:
         plt.close()
         
         # Pairplot (sample for performance)
-        if len(self.df) > 1000:
-            sample_df = self.df.sample(1000, random_state=42)
-            logger.info("Creating pairplot with 1000 samples for performance")
+        if len(self.df) > pairplot_sample_size:
+            sample_df = self.df.sample(pairplot_sample_size, random_state=42)
+            logger.info(f"Creating pairplot with {pairplot_sample_size} samples for performance")
         else:
             sample_df = self.df
         
@@ -209,9 +211,13 @@ class CarPricePredictor:
         
         Args:
             model_scores: Dictionary of model names and their scores
+            
+        Returns:
+            Name of the best performing model
         """
         best_model_name = max(model_scores, key=model_scores.get)
         self.model = self.models[best_model_name]
+        self.best_model_name = best_model_name
         
         # Retrain on the full training set
         self.model.fit(self.X_train, self.y_train)
@@ -258,13 +264,18 @@ class CarPricePredictor:
             'r2': r2
         }
     
-    def save_model(self, filepath: str = "random_forest_regression_model.pkl"):
+    def save_model(self, filepath: str = None):
         """
         Save the trained model to a file.
         
         Args:
-            filepath: Path where the model should be saved
+            filepath: Path where the model should be saved. If None, uses best model name.
         """
+        if filepath is None:
+            # Use best model name or default
+            model_name = getattr(self, 'best_model_name', 'model').lower().replace(' ', '_')
+            filepath = f"{model_name}_regression_model.pkl"
+        
         logger.info(f"Saving model to {filepath}")
         
         try:

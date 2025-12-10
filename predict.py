@@ -74,12 +74,35 @@ class CarPriceEstimator:
             
         Returns:
             DataFrame with predictions
+            
+        Note:
+            The input CSV should contain preprocessed features matching the training data.
+            Expected columns: Year, Kilometers_Driven, Fuel_Type, Transmission, 
+            Owner_Type, Mileage, Engine, Power, Seats
         """
         logger.info(f"Loading data from {csv_path}")
         
         try:
             df = pd.read_csv(csv_path)
-            predictions = self.model.predict(df)
+            
+            # Validate that required features exist
+            expected_features = [
+                'Year', 'Kilometers_Driven', 'Fuel_Type', 'Transmission',
+                'Owner_Type', 'Mileage', 'Engine', 'Power', 'Seats'
+            ]
+            
+            # Get feature names from model if available
+            if hasattr(self.model, 'feature_names_in_'):
+                expected_features = list(self.model.feature_names_in_)
+            
+            missing_features = set(expected_features) - set(df.columns)
+            if missing_features:
+                logger.warning(f"Missing features: {missing_features}")
+                logger.warning("Attempting prediction with available features...")
+            
+            # Select only the features used in training
+            available_features = [f for f in expected_features if f in df.columns]
+            predictions = self.model.predict(df[available_features])
             df['Predicted_Price'] = predictions
             
             logger.info(f"Made {len(predictions)} predictions")
