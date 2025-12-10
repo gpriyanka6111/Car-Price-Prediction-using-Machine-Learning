@@ -34,7 +34,9 @@ It includes **data cleaning, feature engineering, visualization, model compariso
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
+
+**New here?** Check out the [Quick Start Guide](QUICKSTART.md) for a 5-minute introduction!
 
 ### Prerequisites
 - Python 3.7 or higher
@@ -51,6 +53,11 @@ cd Car-Price-Prediction-using-Machine-Learning
 2. Install required dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+3. Train the model:
+```bash
+python train_model.py
 ```
 
 ---
